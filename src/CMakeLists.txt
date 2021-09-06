@@ -1,0 +1,8 @@
+add_subdirectory(app)
+add_subdirectory(base)
+add_subdirectory(board)
+add_subdirectory(movegen)
+add_subdirectory(search)
+add_subdirectory(transposition_table)
+add_subdirectory(uci)
+add_subdirectory(zobrist)

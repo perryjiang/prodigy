@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "g++-11",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "build",
+      "installDir": "build",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++-11",
+        "CMAKE_CXX_FLAGS": "-fdiagnostics-color -Werror -Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wextra-semi -Wfloat-equal -Wformat=2 -Wimplicit-fallthrough=5 -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wsign-conversion -Wstrict-null-sentinel -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wundef -Wuseless-cast -Wzero-as-null-pointer-constant"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "g++-11"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "g++-11",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}

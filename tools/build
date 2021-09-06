@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+readonly PROJECT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
+readonly BUILD_CONFIG="${1:-Release}"
+
+pushd "${PROJECT_ROOT}" > /dev/null
+cmake --preset g++-11
+cmake --build --preset default --config "${BUILD_CONFIG}"
+cmake --install build --config "${BUILD_CONFIG}"
+popd > /dev/null

@@ -1,0 +1,87 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [debug, release, asan, tsan, ubsan]
+        include:
+          - build_type: debug
+            cmake_build_config: Debug
+            cmake_cache_variables: -D CODE_COVERAGE=ON
+            code_coverage: true
+            lcov_capture_command: lcov --rc lcov_branch_coverage=1 --capture --directory "${GITHUB_WORKSPACE}" --gcov-tool gcov-11 --no-external --exclude '**/tests/*'
+          - build_type: release
+            cmake_build_config: Release
+            cmake_cache_variables: -D CMAKE_INTERPROCEDURAL_OPTIMIZATION=ON
+          - build_type: asan
+            cmake_build_config: RelWithDebInfo
+            cmake_cache_variables: -D ASAN=ON
+          - build_type: tsan
+            cmake_build_config: RelWithDebInfo
+            cmake_cache_variables: -D TSAN=ON
+          - build_type: ubsan
+            cmake_build_config: RelWithDebInfo
+            cmake_cache_variables: -D UBSAN=ON
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup
+      run: |
+        sudo apt-get update
+        sudo apt-get install g++-11
+        sudo apt-get install lcov
+        sudo apt-get install libboost-all-dev
+        sudo apt-get install ninja-build
+
+    - name: Configure
+      run: cmake --preset g++-11 ${{ matrix.cmake_cache_variables }}
+
+    - name: Build
+      run: cmake --build --preset default --config ${{ matrix.cmake_build_config }}
+
+    - name: Coverage Baseline
+      if: ${{ matrix.code_coverage }}
+      working-directory: build
+      run: ${{ matrix.lcov_capture_command }} --output-file baseline.info --initial
+
+    - name: Test
+      run: ctest --preset default --build-config ${{ matrix.cmake_build_config }} --parallel "$(nproc)"
+
+    - name: Pack
+      working-directory: build
+      run: cpack -G TZST -C ${{ matrix.cmake_build_config }}
+
+    - name: Coverage Report
+      if: ${{ matrix.code_coverage }}
+      working-directory: build
+      run: |
+        ${{ matrix.lcov_capture_command }} --output-file coverage.info
+        lcov --rc lcov_branch_coverage=1 --add-tracefile baseline.info --add-tracefile coverage.info --output-file report.info
+        genhtml --output-directory coverage_report --legend --branch-coverage --demangle-cpp report.info
+
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}-${{ matrix.build_type }}-${{ github.sha }}
+        path: |
+          build/*.tar.zst
+          build/compile_commands.json
+          build/coverage_report
+        if-no-files-found: error
+
+    - name: Codecov
+      if: ${{ matrix.code_coverage }}
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: build/report.info
+        fail_ci_if_error: true
