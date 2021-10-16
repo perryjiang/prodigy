@@ -5,6 +5,8 @@ project(prodigy VERSION 0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
@@ -15,7 +17,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(BoostTestTarget)
 include(CPack)
 include(CodeCoverage)
-include(CompileCommands)
 include(Sanitizers)
 
 enable_testing()
